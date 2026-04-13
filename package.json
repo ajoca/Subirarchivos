@@ -11,12 +11,14 @@
   "dependencies": {
     "@vercel/blob": "^1.1.1",
     "next": "^15.5.7",
+    "nodemailer": "^8.0.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "resend": "^4.5.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/nodemailer": "^8.0.0",
     "@types/node": "^22.15.3",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",

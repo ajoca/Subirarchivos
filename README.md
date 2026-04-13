@@ -8,13 +8,13 @@ Mini app en Next.js para subir un Excel/CSV, detectar vencimientos y enviar aler
 - Detecta registros con fecha de vencimiento
 - Guarda la última carga en Vercel Blob
 - Un cron diario revisa los registros
-- Si hay items vencidos o por vencer, envía un mail con Resend
+- Si hay items vencidos o por vencer, envía un mail (SMTP Gmail o Resend)
 
 ## Stack
 
 - Next.js App Router
 - Vercel Blob
-- Resend
+- Resend / SMTP (Gmail)
 - SheetJS (`xlsx`)
 
 ## Variables de entorno
@@ -24,9 +24,17 @@ Copiá `.env.example` a `.env.local` y completá:
 ```bash
 BLOB_READ_WRITE_TOKEN=
 RESEND_API_KEY=
-MAIL_FROM="Alerta Vencimientos <onboarding@tu-dominio.com>"
+MAIL_FROM="Alerta Vencimientos <tu-cuenta@gmail.com>"
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=
+SMTP_PASS=
 CRON_SECRET=un-secreto-largo
 ```
+
+Si `SMTP_USER` y `SMTP_PASS` estan configurados, la app envia por SMTP.
+Si no, usa Resend.
 
 ## Correr local
 
@@ -41,8 +49,10 @@ npm run dev
 2. Importalo en Vercel.
 3. En **Storage**, creá un Blob store y asociarlo al proyecto.
 4. Vercel te va a crear `BLOB_READ_WRITE_TOKEN`.
-5. En Resend, creá una API key y verificá tu dominio remitente.
-6. Agregá `RESEND_API_KEY`, `MAIL_FROM` y `CRON_SECRET` en las variables del proyecto.
+5. Elegí proveedor de envio:
+  - SMTP Gmail: generá una App Password en tu cuenta Google y cargá `SMTP_USER` y `SMTP_PASS`.
+  - Resend: creá API key y verificá dominio/remitente.
+6. Agregá variables (`MAIL_FROM`, `CRON_SECRET` y las del proveedor elegido) en el proyecto.
 7. Deploy.
 
 ## Cron
