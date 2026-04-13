@@ -38,7 +38,7 @@ export async function sendAlertEmail(to: string, records: NormalizedRecord[], up
     ? `Alerta de vencimientos: hay items vencidos en ${uploadedFileName}`
     : `Alerta de vencimientos: items por vencer en ${uploadedFileName}`;
 
-  return resend.emails.send({
+  const result = await resend.emails.send({
     from,
     to,
     subject,
@@ -63,4 +63,10 @@ export async function sendAlertEmail(to: string, records: NormalizedRecord[], up
       </div>
     `,
   });
+
+  if (result.error) {
+    throw new Error(`Resend rechazo el envio: ${result.error.message}`);
+  }
+
+  return result;
 }

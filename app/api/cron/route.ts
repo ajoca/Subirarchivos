@@ -34,6 +34,7 @@ async function runJob() {
       ok: true,
       message: `Se envió la alerta a ${payload.defaultRecipient}.`,
       emailId: result.data?.id ?? null,
+      recipient: payload.defaultRecipient,
       urgentCount: urgent.length,
     });
   } catch (error) {

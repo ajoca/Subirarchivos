@@ -3,6 +3,8 @@ import { parseWorkbook } from '@/lib/parser';
 import { savePayload } from '@/lib/storage';
 import type { UploadPayload } from '@/lib/types';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
@@ -10,7 +12,7 @@ export async function POST(request: Request) {
   try {
     const form = await request.formData();
     const file = form.get('file');
-    const defaultRecipient = String(form.get('defaultRecipient') || '').trim();
+    const defaultRecipient = String(form.get('defaultRecipient') || '').trim().toLowerCase();
     const daysBeforeAlert = Number(form.get('daysBeforeAlert') || 3);
 
     if (!(file instanceof File)) {
@@ -19,6 +21,10 @@ export async function POST(request: Request) {
 
     if (!defaultRecipient) {
       return NextResponse.json({ error: 'Tenés que indicar un mail de destino.' }, { status: 400 });
+    }
+
+    if (!EMAIL_REGEX.test(defaultRecipient)) {
+      return NextResponse.json({ error: 'El mail de destino no tiene un formato válido.' }, { status: 400 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
