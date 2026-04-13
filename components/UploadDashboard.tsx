@@ -241,15 +241,6 @@ export function UploadDashboard() {
         )}
       </section>
 
-      <section className="card" style={{ marginTop: 20 }}>
-        <h2>Notas importantes</h2>
-        <div className="code">
-          {`- La app intenta detectar el nombre y la fecha de vencimiento automáticamente.
-- Funciona mejor si el nombre está en una columna tipo B y la fecha está al final de la fila.
-- Para tus planillas actuales de libretas suele andar bien porque toma desde la fila 6 hacia abajo.
-- Si querés máxima precisión, después te la adapto exacto a la estructura real de tus Excel.`}
-        </div>
-      </section>
     </div>
   );
 }

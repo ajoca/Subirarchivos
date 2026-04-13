@@ -160,7 +160,7 @@ export function parseWorkbook(buffer: Buffer, fileName: string, alertThresholdDa
 
     const dataRows = rows
       .map((row) => (Array.isArray(row) ? row : []))
-      .filter((row, index) => index >= 5 && row.some((cell) => String(cell ?? '').trim() !== ''));
+      .filter((row) => row.some((cell) => String(cell ?? '').trim() !== ''));
 
     for (const row of dataRows) {
       const normalized = normalizeRow(sheetName, row, alertThresholdDays);
