@@ -36,6 +36,9 @@ function tryParseDate(value: unknown): Date | null {
     const trimmed = value.trim();
     if (!trimmed) return null;
 
+    // Evita interpretar valores numericos sueltos (por ejemplo "119") como fechas.
+    if (/^\d+$/.test(trimmed)) return null;
+
     const ddmmyyyy = trimmed.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/);
     if (ddmmyyyy) {
       const day = Number(ddmmyyyy[1]);
@@ -60,7 +63,13 @@ function tryParseDate(value: unknown): Date | null {
     }
 
     const parsed = new Date(trimmed);
-    if (!Number.isNaN(parsed.getTime())) return toStartOfDay(parsed);
+    if (
+      !Number.isNaN(parsed.getTime()) &&
+      parsed.getFullYear() >= 2020 &&
+      parsed.getFullYear() <= 2100
+    ) {
+      return toStartOfDay(parsed);
+    }
   }
 
   return null;
