@@ -41,9 +41,22 @@ function tryParseDate(value: unknown): Date | null {
       const day = Number(ddmmyyyy[1]);
       const month = Number(ddmmyyyy[2]) - 1;
       let year = Number(ddmmyyyy[3]);
+
       if (year < 100) year += 2000;
+
+      // Evitar anios absurdos por conversiones raras
+      if (year < 2020 || year > 2100) return null;
+
       const parsed = new Date(year, month, day);
-      if (!Number.isNaN(parsed.getTime())) return toStartOfDay(parsed);
+
+      if (
+        !Number.isNaN(parsed.getTime()) &&
+        parsed.getFullYear() === year &&
+        parsed.getMonth() === month &&
+        parsed.getDate() === day
+      ) {
+        return toStartOfDay(parsed);
+      }
     }
 
     const parsed = new Date(trimmed);
@@ -122,7 +135,7 @@ export function parseWorkbook(buffer: Buffer, fileName: string, alertThresholdDa
   const workbook = XLSX.read(buffer, {
     type: 'buffer',
     cellDates: true,
-    raw: false,
+    raw: true,
   });
 
   const allRecords: NormalizedRecord[] = [];
@@ -133,7 +146,7 @@ export function parseWorkbook(buffer: Buffer, fileName: string, alertThresholdDa
       header: 1,
       blankrows: false,
       defval: '',
-      raw: false,
+      raw: true,
     });
 
     const dataRows = rows
