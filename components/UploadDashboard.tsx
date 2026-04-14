@@ -87,6 +87,11 @@ export function UploadDashboard() {
       }
 
       setMessage(`Archivo cargado. Se detectaron ${data.totalRecords} registros y ${data.urgentCount} alertas.`);
+      if (data.sameVersionAsLastSent && (data.daysUntilNextEmail ?? 0) > 0) {
+        setSameFileWarning(true);
+      } else {
+        setSameFileWarning(false);
+      }
       await loadCurrentPreview();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error inesperado.');
@@ -95,17 +100,22 @@ export function UploadDashboard() {
     }
   }
 
-  async function runCronNow() {
+  async function runCronNow(force = false) {
     setLoading(true);
     setMessage(null);
     setError(null);
     try {
       const response = await fetch('/api/cron', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ force }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'No se pudo ejecutar la alerta manual.');
       setMessage(data.message || 'Alerta ejecutada correctamente.');
+      await loadCurrentPreview();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error inesperado.');
     } finally {
@@ -195,7 +205,10 @@ export function UploadDashboard() {
                   className="button"
                   type="button"
                   disabled={loading}
-                  onClick={() => { setSameFileWarning(false); void runCronNow(); }}
+                  onClick={() => {
+                    setSameFileWarning(false);
+                    void runCronNow(true);
+                  }}
                 >
                   Sí, enviar ahora
                 </button>
@@ -225,7 +238,7 @@ export function UploadDashboard() {
               Probar alerta ahora
             </button>
             <p className="note">
-              El cron real de Vercel entra por GET y queda protegido con <strong>CRON_SECRET</strong>. Este botón usa un POST interno para que puedas probar el envío enseguida.
+              El cron real de Vercel entra por GET y queda protegido con <strong>CRON_SECRET</strong>. Este botón respeta el intervalo (15 días) por defecto.
             </p>
           </div>
         </aside>

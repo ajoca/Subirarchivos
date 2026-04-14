@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { parseWorkbook } from '@/lib/parser';
-import { savePayload } from '@/lib/storage';
+import { loadPayload, savePayload } from '@/lib/storage';
 import type { UploadPayload } from '@/lib/types';
+import { buildPayloadFingerprint } from '@/lib/payloadFingerprint';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -30,12 +31,38 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const records = parseWorkbook(buffer, file.name, daysBeforeAlert);
 
+    const previousPayload = await loadPayload();
+    const intervalDays = previousPayload?.emailIntervalDays ?? 15;
+    const contentFingerprint = buildPayloadFingerprint({
+      uploadedFileName: file.name,
+      defaultRecipient,
+      daysBeforeAlert,
+      records,
+    });
+
+    const sameRecipientAsPrevious = previousPayload?.defaultRecipient === defaultRecipient;
+    const lastEmailSentAt = sameRecipientAsPrevious ? previousPayload?.lastEmailSentAt : undefined;
+    const lastSentFingerprint = sameRecipientAsPrevious ? previousPayload?.lastSentFingerprint : undefined;
+    const sameVersionAsLastSent = Boolean(lastSentFingerprint && lastSentFingerprint === contentFingerprint);
+
+    let daysUntilNextEmail: number | null = null;
+    if (lastEmailSentAt) {
+      const daysSinceLast = Math.floor(
+        (Date.now() - new Date(lastEmailSentAt).getTime()) / 86_400_000,
+      );
+      daysUntilNextEmail = Math.max(0, intervalDays - daysSinceLast);
+    }
+
     const payload: UploadPayload = {
       uploadedAt: new Date().toISOString(),
       uploadedFileName: file.name,
       defaultRecipient,
       daysBeforeAlert,
       records,
+      emailIntervalDays: intervalDays,
+      lastEmailSentAt,
+      contentFingerprint,
+      lastSentFingerprint,
     };
 
     const blob = await savePayload(payload);
@@ -50,6 +77,8 @@ export async function POST(request: Request) {
       totalRecords: payload.records.length,
       urgentCount: payload.records.filter((record) => record.status !== 'OK').length,
       preview: payload.records.slice(0, 20),
+      sameVersionAsLastSent,
+      daysUntilNextEmail,
     });
   } catch (error) {
     console.error(error);
