@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadPayload } from '@/lib/storage';
+import { loadPayload, savePayload } from '@/lib/storage';
 import { sendAlertEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
@@ -16,11 +16,31 @@ function isAuthorized(request: Request) {
   return bearer === cronSecret || querySecret === cronSecret;
 }
 
-async function runJob() {
+/**
+ * @param force - true = envía siempre (botón manual). false = respeta intervalo de 15 días (cron automático).
+ */
+async function runJob(force: boolean) {
   try {
     const payload = await loadPayload();
     if (!payload) {
       return NextResponse.json({ ok: true, message: 'No hay archivo cargado todavía.' });
+    }
+
+    const intervalDays = payload.emailIntervalDays ?? 15;
+
+    // Si no es forzado, verificar si ya pasaron los días del intervalo
+    if (!force && payload.lastEmailSentAt) {
+      const daysSinceLast = Math.floor(
+        (Date.now() - new Date(payload.lastEmailSentAt).getTime()) / 86_400_000,
+      );
+      if (daysSinceLast < intervalDays) {
+        const daysUntilNext = intervalDays - daysSinceLast;
+        return NextResponse.json({
+          ok: true,
+          skipped: true,
+          message: `Envío omitido. Último envío: ${new Date(payload.lastEmailSentAt).toLocaleDateString('es-UY')}. Próximo envío automático en ${daysUntilNext} día(s).`,
+        });
+      }
     }
 
     const urgent = payload.records.filter((record) => record.status !== 'OK');
@@ -29,6 +49,9 @@ async function runJob() {
     }
 
     const result = await sendAlertEmail(payload.defaultRecipient, urgent, payload.uploadedFileName);
+
+    // Guardar timestamp del envío en el payload almacenado
+    await savePayload({ ...payload, lastEmailSentAt: new Date().toISOString() });
 
     return NextResponse.json({
       ok: true,
@@ -46,14 +69,15 @@ async function runJob() {
   }
 }
 
-
+/** Cron automático de Vercel: respeta el intervalo de días */
 export async function GET(request: Request) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 });
   }
-  return runJob();
+  return runJob(false);
 }
 
+/** Botón manual "Probar alerta ahora": siempre envía */
 export async function POST() {
-  return runJob();
+  return runJob(true);
 }

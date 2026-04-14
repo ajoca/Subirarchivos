@@ -43,17 +43,6 @@ npm install
 npm run dev
 ```
 
-## Deploy en Vercel
-
-1. Subí este proyecto a GitHub.
-2. Importalo en Vercel.
-3. En **Storage**, creá un Blob store y asociarlo al proyecto.
-4. Vercel te va a crear `BLOB_READ_WRITE_TOKEN`.
-5. Elegí proveedor de envio:
-  - SMTP Gmail: generá una App Password en tu cuenta Google y cargá `SMTP_USER` y `SMTP_PASS`.
-  - Resend: creá API key y verificá dominio/remitente.
-6. Agregá variables (`MAIL_FROM`, `CRON_SECRET` y las del proveedor elegido) en el proyecto.
-7. Deploy.
 
 ## Cron
 
@@ -86,6 +75,4 @@ O usar header:
 Authorization: Bearer TU_CRON_SECRET
 ```
 
-## Mejora recomendada
 
-Para tu caso real, después conviene adaptar el parser exacto a las columnas de tus planillas de Buenimar/Belater, así queda 100% afinado.
