@@ -193,16 +193,19 @@ export function UploadDashboard() {
           </form>
 
           {sameFileWarning && payload?.lastEmailSentAt ? (
-            <div className="note" style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: 8, padding: '12px 16px', marginTop: 12 }}>
-              <strong>⚠️ Este archivo ya fue enviado</strong> el{' '}
-              {new Date(payload.lastEmailSentAt).toLocaleDateString('es-UY')} a{' '}
-              <strong>{payload.defaultRecipient}</strong>. El próximo envío automático es en{' '}
-              <strong>{payload.daysUntilNextEmail} día(s)</strong>.
-              <br />
-              ¿El archivo sufrió cambios y querés enviar la nueva versión ahora?
-              <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+            <div className="warning-banner">
+              <p className="warning-text">
+                <strong>Este archivo ya fue enviado</strong> el{' '}
+                {new Date(payload.lastEmailSentAt).toLocaleDateString('es-UY')} a{' '}
+                <strong>{payload.defaultRecipient}</strong>. El próximo envío automático es en{' '}
+                <strong>{payload.daysUntilNextEmail} día(s)</strong>.
+              </p>
+              <p className="warning-text" style={{ marginTop: 4 }}>
+                ¿El archivo sufrió cambios y querés enviar la nueva versión ahora?
+              </p>
+              <div className="warning-actions">
                 <button
-                  className="button"
+                  className="warning-btn-primary"
                   type="button"
                   disabled={loading}
                   onClick={() => {
@@ -213,7 +216,7 @@ export function UploadDashboard() {
                   Sí, enviar ahora
                 </button>
                 <button
-                  className="button secondary"
+                  className="warning-btn-secondary"
                   type="button"
                   onClick={() => setSameFileWarning(false)}
                 >
