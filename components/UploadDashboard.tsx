@@ -234,7 +234,7 @@ export function UploadDashboard() {
             <p className="note">2. La app detecta personas y fechas de vencimiento.</p>
             <p className="note">3. Guarda el archivo procesado para que el cron lo revise todos los días.</p>
             <p className="note">4. Cuando encuentra vencidos o próximos a vencer, manda el mail.</p>
-            <button className="button secondary" type="button" onClick={runCronNow} disabled={loading}>
+            <button className="button secondary" type="button" onClick={() => { void runCronNow(); }} disabled={loading}>
               Probar alerta ahora
             </button>
             <p className="note">
